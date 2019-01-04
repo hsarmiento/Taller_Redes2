@@ -10,14 +10,14 @@ output:
 
 #igraph
 
-```{r}
+```{r message=FALSE}
 #cargar igraph
 library(igraph)
 ```
 
 ## Crear grafos
 
-Para crear un grafo utilizaremos la función ``graph``. En ella podemos incluir los arcos que conectarán los nodos (vértices) del grafos y la cantidad de nodos totales.
+Para crear un grafo utilizaremos la función ``graph``. En ella podemos incluir los arcos que conectarán los nodos (vértices) del grafo y la cantidad de nodos totales.
 
 ```{r}
 #crear una variable que almacene el grafo con arcos entre (1,2), (2,3), (3,1) para 3 nodos
@@ -34,4 +34,46 @@ g2 <- graph(edges = c(1,2, 2,3, 3,1), n = 8, directed = F)
 plot(g2)
 ```
 
+En los grafos anteriores, los arcos no tienen dirección alguna (grafo no dirigido). Ahora, crearemos un grafo dirigido cambiando el parámetro ``directed = T``. 
+
+```{r}
+g3 <- graph(edges = c(1,2, 2,3, 3,1), n = 8, directed = T)
+plot(g3)
+```
+
+También podemos crear grafos donde los nodos tienen un nombre (no necesariamente números). En este caso, no necesitamos el parámetro ``n`` para la cantidad de vértices.
+```{r}
+g4 <- graph( c("John", "Jim", "Jim", "Jill", "Jill", "John")) # named vertices
+plot(g4)
+```
+
+Sin embargo, ya que no podemos usar el parámetro ``n``, no tendremos nodos "aislados". Para esto, utilizaremos el parámetro ``isolates`` el cual recibe un vector con nombres de nodos que no tendrán conexión alguna con otros elementos en el grafo.
+
+```{r}
+g5 <- graph( c("John", "Jim", "Jim", "Jack", "Jim", "Jack", "John", "John"), 
+             isolates=c("Jesse", "Janis", "Jennifer", "Justin") )  
+plot(g5)
+```
+
+En caso de grafos pequeños, también podríamos crearlos de forma "literal". Para esto usaremos los siguientes operadores sobre la función ``graph_from_literal``: 
+
+* Grafo no dirigido con 2 vértices: ``A-B``
+* Grafo dirigido desde A a B: ``A-+B``
+* Conjunto de nodos del grafo: ``A:B:C:D``
+
+```{r}
+g6 <- graph_from_literal(a-b, b-c, c-a, a-d)
+plot(g6)
+```
+
+```{r}
+g7 <- graph_from_literal(a-+b, b+-c, c-+a, a+-d)
+plot(g7)
+```
+```{r}
+g8 <- graph_from_literal(a:b:c---c:d:e, f)
+plot(g8)
+```
+
+## Atributos de los grafos
 
