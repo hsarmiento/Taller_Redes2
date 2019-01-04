@@ -1,7 +1,11 @@
 ---
-title: "R Notebook"
-output: taller_redes2
+title: "Taller de Redes 2"
 author: "Sebastián Ferrada, Hernán Sarmiento"
+date: "Enero 2018"
+output: 
+  html_document: 
+    theme: cosmo
+    toc: yes
 ---
 
 This is an [R Markdown](http://rmarkdown.rstudio.com) Notebook. When you execute code within the notebook, the results appear beneath the code. 
