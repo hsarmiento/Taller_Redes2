@@ -11,7 +11,7 @@ output:
 #igraph
 
 ```{r message=FALSE}
-#cargar igraph
+#cargar igraph. En caso de no tener instalado, ejecutar install.packages("igraph")
 library(igraph)
 ```
 
@@ -50,8 +50,11 @@ plot(g4)
 Sin embargo, ya que no podemos usar el parámetro ``n``, no tendremos nodos "aislados". Para esto, utilizaremos el parámetro ``isolates`` el cual recibe un vector con nombres de nodos que no tendrán conexión alguna con otros elementos en el grafo.
 
 ```{r}
-g5 <- graph( c("John", "Jim", "Jim", "Jack", "Jim", "Jack", "John", "John"), 
-             isolates=c("Jesse", "Janis", "Jennifer", "Justin") )  
+#g5 <- graph( c("John", "Jim", "Jim", "Jack", "Jim", "Jack", "John", "John"), 
+             #isolates=c("Jesse", "Janis", "Jennifer", "Justin") )  
+
+g5 <- graph( c("Juan", "Maria", "Maria", "Lucas", "Lucas", "Maria", "Juan", "Juan"), 
+             isolates=c("Luisa", "Teresa", "Javier", "Matias") )  
 plot(g5)
 ```
 
@@ -75,5 +78,195 @@ g8 <- graph_from_literal(a:b:c---c:d:e, f)
 plot(g8)
 ```
 
-## Atributos de los grafos
+## Atributos de grafos
+
+Obtener los vértices y arcos del grafo.
+```{r}
+#g5 es el grafo con nombres que utilizamos anteriormente
+V(g5)
+E(g5)
+```
+
+Mostrar la matriz de adyacencia
+```{r}
+g5[]
+```
+
+O mostrar solo una fila en particular de la matriz
+```{r}
+g5[1,]
+# o tambien g5["Juan",]
+```
+
+Cada vértice y arco puede tener sus propios atributos además del nombre de cada uno de los nodos
+```{r}
+V(g5)$name
+```
+
+Por ejemplo, podríamos agregar para cada nodo, un nuevo atributo llamado ``gender``
+```{r}
+#la asignación se realiza en el orden de las columnas que aparecen en V(g5)
+V(g5)$gender <- c("male", "female", "male", "female", "female", "male", "male")
+```
+
+Y también agregar un nuevo atributo a los arcos, por ejemplo ``likes``
+```{r}
+#la asignación se realiza en el orden de las columnas que aparecen en E(g5)
+E(g5)$views <- c(2, 1, 3, 1)
+```
+
+Si quisiéramos ver todos los atributos de vértices y arcos podríamos usar las funciones ``vertex_attr(grafo)`` y ``edge_attr(grafo)``.
+```{r}
+print("atributos de los nodos")
+vertex_attr(g5)
+print("atributos de los arcos")
+edge_attr(g5)
+```
+
+## Opciones estéticas
+
+Usando el atributo ``gender`` asignado previamente para los nodos, podríamos mostrar cada categoría en distintos colores. Para ello usaremos el parámetro ``vertex.color`` el cual requiere un vector de colores.
+
+```{r, fig.height=5}
+plot(g5,vertex.color=c( "pink", "skyblue")[1+(V(g5)$gender=="male")])
+```
+Además, como es posible apreciar en el grafo anterior, el tamaño de las direcciones del arco es un poco grande y también el nombre de cada nodo no queda bien ajustado. Para solucionar esto, usaremos los parámetros ``vertex.label.dist``, ``edge.arrow.size`` y ``vertex.label.color`` para corregir la distancia y el color del nombre del nodo, y  el tamaño de la dirección del arco.
+
+```{r}
+plot(g5, edge.arrow.size=.5, vertex.label.color="black", vertex.label.dist=3,
+  vertex.color=c( "pink", "skyblue")[1+(V(g5)$gender=="male")])
+```
+Tambien podemos separar el arco bidireccional en 2 unidireccionales y agregaremos el "peso" de cada uno de estos al grafo. Para esto, usaremos el parámetro ``edge.curved`` y ``edge.label``.
+```{r}
+plot(g5, edge.arrow.size=.5, vertex.label.color="black", vertex.label.dist=3,
+  vertex.color=c( "pink", "skyblue")[1+(V(g5)$gender=="male")], edge.label = E(g5)$views, edge.curved = T)
+```
+
+Alguna veces también es útil utilizar el nombre de los nodos en vez del círculo para visualizar el grafo.
+```{r}
+plot(g5, edge.arrow.size=.5, vertex.label.color=c("pink", "skyblue")[1+(V(g5)$gender=="male")], vertex.label = V(g5)$names, vertex.shape = "none", edge.label = E(g5)$views, edge.curved = T, vertex.label.font = 2)
+```
+
+También es posible ocultar el peso de los arcos y que el ancho de estos represente su valor.
+```{r}
+
+plot(g5, edge.arrow.size=.5, vertex.label.color=c("pink", "skyblue")[1+(V(g5)$gender=="male")], vertex.label = V(g5)$names, vertex.shape = "none",  edge.curved = T, vertex.label.font = 2, edge.width = E(g5)$views*0.8)
+```
+Para más información sobre las opciones estéticas, ejecutar ``help(igraph.plotting)``
+
+## Cargar datos en igraph
+
+Primero veremos un caso de cargar un pequeño dataset a partir de un archivo ``.csv``. Este dataset consta de 2 archivos: ``Dataset1-Media-Example-NODES.csv`` que representa la información de cada nodo tales como su identificador, nombre, etc. El segundo dataset ``Dataset1-Media-Example-EDGES.csv``, representa la red (grafo) como tal, la cual posee los arcos dirigidos entre nodos, sus pesos y tipo. Esta red representa las menciones y hyperlinks existente entre diferentes fuentes de noticias.
+
+Primero cargaremos los datasets:
+```{r}
+nodes <- read.csv("data/Dataset1-Media-Example-NODES.csv", header=T, as.is=T)
+edges <- read.csv("data/Dataset1-Media-Example-EDGES.csv", header=T, as.is=T)
+```
+
+Podemos inspeccionar los datasets con algunos comandos como:
+```{r}
+str(nodes)
+str(edges)
+```
+
+Convirtiendo los ``.csv`` de nodos y vértices a un grafo en formato ``igraph``.
+```{r}
+net <- graph_from_data_frame(d=edges, vertices=nodes, directed=T) 
+```
+
+Inspeccionando los elementos del grafo
+```{r}
+V(net)
+E(net)
+```
+
+Graficando el grafo, usando como etiqueta de cada nodo el nombre de cada medio de noticias a través del atributo ``media``.
+```{r fig.width=10}
+plot(net, edge.curved = T, vertex.label=nodes$media, vertex.size = 7, vertex.label.dist = 2)
+```
+
+Dado que pueden existir muchos arcos de ``from`` a ``to``, agruparemos estos en 1 solo arco agregando el peso mediante la suma. Además eliminaremos los loops (o arcos de un nodo consigo mismo).
+```{r}
+nets <- simplify(net, remove.multiple = T, remove.loops = T, edge.attr.comb=list(weight="sum","ignore"))
+```
+
+Y luego graficamos
+```{r fig.width=10}
+plot(nets, vertex.label=nodes$media, vertex.size = 7, vertex.label.dist = 2, edge.curved = F)
+```
+
+Ahora, revisaremos los atributos de nodos y arcos para agregar mayor información a nuestro grafo.
+```{r}
+print("Atributos de los nodos")
+vertex_attr(nets)
+print("Atributos de los arcos")
+edge_attr(nets)
+```
+
+Basado en lo anterior, vemos que tenemos 3 tipos de medios noticiosos y cada uno de estos tienen un valor de audiencia que nos dice la importancia que poseen. En relación a esto, adjuntaremos tal información en nuestro grafo.
+
+```{r fig.width=10}
+coul <- c("red","blue","green")
+plot(nets, vertex.label.dist = 2, edge.curved = T, vertex.color = coul[V(nets)$media.type],
+     vertex.label.color = "black", edge.arrow.size = 0.5, vertex.label = V(nets)$media, vertex.size = V(nets)$audience.size*0.3)
+
+
+legend("bottomleft", legend=levels(as.factor(V(nets)$type.label)) , col = coul , bty = "n", pch=20 , pt.cex = 3, cex = 1, text.col=coul , horiz = FALSE, inset = c(0.1, 0.1))
+```
+
+Adicionalmente, podríamos agregar los pesos que tiene cada arco a través del ancho de estos.
+```{r fig.width=10}
+coul <- c("red","blue","green")
+plot(nets, vertex.label.dist = 2, edge.curved = T, vertex.color = coul[V(nets)$media.type],
+     vertex.label.color = "black", edge.arrow.size = 0.9, vertex.label = V(nets)$media, vertex.size = V(nets)$audience.size*0.3, edge.width = E(nets)$weight*0.2)
+
+
+legend("bottomleft", legend=levels(as.factor(V(nets)$type.label)) , col = coul , bty = "n", pch=20 , pt.cex = 3, cex = 1, text.col=coul , horiz = FALSE, inset = c(0.1, 0.1))
+```
+
+Si inspeccionamos nuevamente los atributos de nuestra red original sin agregación, es decir, el grafo ``net``, nos daremos cuenta que cada arco tiene un atributo llamado ``type``, que hace referencia al tipo de relación que existe entre 2 medios noticios.
+
+```{r}
+edge_attr(net)
+```
+
+En base a lo anterior, podríamos analizar cómo se relacionan los medios noticiosos en base al tipo que existe entre estos. Para eso, crearemos 2 grafos con los mismos nodos pero solo mostrando los arcos según el tipo que corresponda (en nuestro caso ``hyperlink`` y ``mention``)
+
+```{r}
+net.m <- net - E(net)[E(net)$type=="hyperlink"] 
+net.h <- net - E(net)[E(net)$type=="mention"]
+```
+
+Luego, graficamos ambos grafos pero como la distribución en el espacio de la red es aleatoria en cada visualización, forzaremos su distribución para que esta sea igual (en ambos grafos) utilizando el algoritmo de **Fruchterman and Reingold** .
+
+
+
+```{r fig.width=10}
+
+coul <- c("red","blue","green")
+l <- layout_with_fr(net)
+
+plot(net.h, layout=l, main="Tie: Hyperlink", vertex.label = NA, vertex.color = coul[V(net.h)$media.type], edge.arrow.size = 0.8)
+
+legend("bottomleft", legend=levels(as.factor(V(net.h)$type.label)) , col = coul , bty = "n", pch=20 , pt.cex = 3, cex = 1, text.col=coul , horiz = FALSE, inset = c(0.1, 0.1))
+
+plot(net.m, vertex.color=coul[V(net.m)$media.type], layout=l, main="Tie: Mention", edge.arrow.size = 0.8, vertex.label = NA)
+
+
+legend("bottomleft", legend=levels(as.factor(V(net.m)$type.label)) , col = coul , bty = "n", pch=20 , pt.cex = 3, cex = 1, text.col=coul , horiz = FALSE, inset = c(0.1, 0.1))
+```
+
+
+
+
+```{r}
+netm <- get.adjacency(nets, attr="weight", sparse=F)
+colnames(netm) <- V(net)$media
+rownames(netm) <- V(net)$media
+palf <- colorRampPalette(c("gold", "dark orange"))
+heatmap(netm[,17:1], Rowv = NA, Colv = NA, col = palf(100),
+scale="none", margins=c(10,10) )
+
+```
 
