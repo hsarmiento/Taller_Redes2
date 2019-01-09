@@ -257,8 +257,7 @@ plot(net.m, vertex.color=coul[V(net.m)$media.type], layout=l, main="Tie: Mention
 legend("bottomleft", legend=levels(as.factor(V(net.m)$type.label)) , col = coul , bty = "n", pch=20 , pt.cex = 3, cex = 1, text.col=coul , horiz = FALSE, inset = c(0.1, 0.1))
 ```
 
-
-
+Finalmente, el mismo grafo y en base a los pesos de cada arco, podría ser visualizado como un mapa de calor (heatmap) que represente las conexiones entre nodos.
 
 ```{r}
 netm <- get.adjacency(nets, attr="weight", sparse=F)
@@ -270,3 +269,32 @@ scale="none", margins=c(10,10) )
 
 ```
 
+## Métricas del grafo
+
+## Subgrupos y comunidades
+
+Como ya hemos visto en el dataset utilizado, el grafo presenta arcos dirigidos. Previamente a utilizar las funciones para subgrupos y comunidades, debemos transformar nuestro grafo a uno no dirigido. Para ello, la manera más sencilla es crear arcos indirectos entre cada par de nodos que están conectados utilizando la función ``as.undirected`` con el parámetro ``mode="collapse"``. Además como en los casos anteriores, haremos una agregación de los pesos en los arcos.
+
+```{r}
+net.sym <- as.undirected(simplify(net,remove.loops = T), mode= "collapse", edge.attr.comb=list(weight="sum", "ignore"))
+```
+
+### Cliques
+Un clique es un subgrafo en el que cada vértice está conectado a todos los demás vértices del subgrafo. Es decir, el subgrafo de $G$ inducido por un conjunto de vértices $C$ es un grafo completo. En base a esto, buscaremos los cliques presentes en el grafo considerando el que tenga el mayor número de nodos en el subgrafo.
+
+```{r}
+cl <- cliques(net.sym) #lista de cliques
+cl.len <- sapply(cliques(net.sym), length) #largo de los cliques. No lo usaremos pero se puede ver el tamaño de todos
+cl.largest <- largest_cliques(net.sym)  #entrega una lista de vertices del subgrafo extraido
+``` 
+
+Basado en lo anterior, primero vamos a colorear todos los nodos de una tonalidad específica. Luego le daremos un color diferente a los que están en el clique más grande y finalmente graficaremos.
+
+```{r fig.width=10}
+vcol <- rep("grey80", vcount(net.sym))  #obtenemos todos los vertices de net.sym con vcount y los pintamos gris
+vcol[unlist(largest_cliques(net.sym))] <- "gold"  #desenlistamos los vertices del subgrafo y los pintamos dorado
+plot(as.undirected(net.sym), vertex.label=V(net.sym)$media, vertex.color=vcol, vertex.label.dist = 2)
+```
+
+### Detección de comunidades
+En la literatura existe una amplia cantidad de algoritmos para detectar comunidades en redes de grafos. Acá usaremos 2 tipos de algoritmos.
