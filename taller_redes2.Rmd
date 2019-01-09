@@ -306,3 +306,53 @@ plot(as.undirected(net.sym), vertex.label=V(net.sym)$media, vertex.color=vcol, v
 
 ### Detección de comunidades
 En la literatura existe una amplia cantidad de algoritmos para detectar comunidades en redes de grafos. Acá usaremos 2 tipos de algoritmos.
+
+El primero que usaremos será el algoritmo de **Newman-Girvan**. Este algoritmo se basa en el concepto de arcos con alta centralidad, los cuales son eliminados secuencialmente para particionar la red en subcomunidades. Para ello, previamente visualizaremos mediante dendogramas las particiones generadas por el algoritmo.
+
+```{r}
+net.wl = simplify(net, remove.loops = T)
+ceb <- cluster_edge_betweenness(net.wl) 
+
+dendPlot(ceb, mode="hclust")
+```
+
+
+Luego graficamos la comunidad en base al grafo obtenido con ciertas opciones como agregar el nombre de cada medio noticioso, tamaño de las flechas, etc.
+```{r fig.width= 9}
+plot(ceb, net.wl, edge.arrow.size = 0.2, vertex.label = V(net.wl)$media, vertex.label.color = "black", vertex.label.dist = 2) 
+
+```
+
+Un segundo algoritmo que también podemos utilizar para encontrar comunidades es el basado en modularidad. Este método busca conexiones densas dentro de cada comunidad tratando de maximizar a su vez la separación distintos sub grafos.
+```{r fig.width= 10}
+cfg <- cluster_fast_greedy(net.sym)
+
+plot(cfg, net.sym, edge.arrow.size = 0.2, vertex.label = V(net.wl)$media, vertex.label.color = "black", vertex.label.dist = 2)
+```
+
+# Taller Práctico
+```{r}
+edgesponsor <- read.csv("data/netsponsor_2006_1mes.csv", sep = ";")
+vertexsponsor <- read.csv("data/vertex_2006_1mes.csv", sep = ";")
+```
+
+```{r}
+netsponsor <- graph_from_data_frame(d = edgesponsor, vertices = vertexsponsor, directed = F)
+```
+
+```{r}
+V(netsponsor)
+E(netsponsor)
+```
+
+
+```{r}
+edge_attr(netsponsor)
+vertex_attr(netsponsor)
+```
+
+```{r}
+
+```
+
+
