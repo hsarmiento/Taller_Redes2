@@ -4,9 +4,17 @@ author: "Sebastián Ferrada, Hernán Sarmiento"
 date: "Enero 2018"
 output: 
   html_document: 
-    theme: cosmo
+    theme: yeti
     toc: yes
 ---
+
+#Redes
+
+Una red (o _Grafo_) tiene dos componentes esenciales: sus _vértices_ o _nodos_ y sus _aristas_ o _arcos_. Los nodos representan objetos, los cuales están conectados entre sí mediante las aristas. Puede darse la posibilidad que que hayan nodos sin conexiones, pero __no__ que las aristas existan sin nodos asociados.
+
+Por lo general, los nodos tienen algún identificador que nos permite saber a qué objeto se representa con cada nodo. Los identificadores, pueden ser números, texto u otros. Por ejemplo, podemos tener los nodos {1, 2, 3} o {"Juana", "Luisa", "María"}.
+
+Además de los nodos y los arcos, los grafos pueden tener otras componentes o cualidades. A veces los arcos pueden ser dirigidos, es decir, si "Juana" se relaciona con "Luisa" no significa necesariamente que "Luisa" se Relacione con "Juana". Este tipo de grafos suele modelar la relación de "seguir" en redes sociales. Otros grafos son no dirigidos o bidireccionales, donde los nodos conectados se relacionan simétricamente, como las amistades de Facebook. Finalmente, tanto nodos como arcos pueden presentar atributos. Por ejemplo los nodos pueden tener más información sobre los objetos que representan: nombre, color, etc. Asimismo, los arcos pueden contener valores sobre la naturaleza de la relación: fecha de inicio, número de interacciones, etc.
 
 #igraph
 
