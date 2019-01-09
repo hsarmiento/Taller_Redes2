@@ -279,6 +279,109 @@ scale="none", margins=c(10,10) )
 
 ## Métricas del grafo
 
+Los grafos pueden describirse y analizarse a través de distintas métricas y propiedades:
+
+### Densidad
+
+La densidad es el cociente entre la cantidad de arcos presentes en el grafo y todos los arcos posibles. La cantidad de arcos posibles en una red no dirigida es $n(n-1)/2$, siendo n la cantidad de nodos del grafo. En una red dirigida es el doble: $n(n-1)$.
+
+```{r}
+edge_density(net, loops=F)
+```
+
+```{r}
+ecount(net)/(vcount(net)*(vcount(net)-1)) #para grafos dirigidos
+```
+
+### Reciprocidad
+
+La reciprocidad es la proporción de nodos que se relacionan recíprocamente en una red dirigida.
+
+```{r}
+reciprocity(net)
+```
+
+### Transitividad
+
+La transitividad es una métrica que puede ser local o global. La transitividad global corresponde a la proporción de _triángulos_ presentes en la red, sin considerar la direccionalidad. La transitividad local indica para cada nodo el cociente entre el número de triángulos a los que pertenece y el número de triples en que el nodo es central.
+
+```{r}
+transitivity(net, type="global") #net se considera como una red no dirigida
+```
+
+```{r}
+transitivity(net, type="local")
+```
+
+### Diámetro
+
+El diámetro de una red corresponde a ya mayor distancia geodésica presente en ella. La distancia geodésica entre un par de nodos corresponde al largo del menor camino posible entre ambos nodos. El largo corresponde a la suma de los pesos de cada arco que hay que cruzar en el camino. El diámetro puede considerar o no la direccionalidad del grafo. Si los nodos están desconectados, la distancia geodésica entre ellos es infinita.
+
+```{r}
+diameter(net, directed=F, weights=NA)
+```
+
+```{r}
+diameter(net, directed=F)
+```
+
+```{r}
+diameter(net, directed=T, weights=NA)
+```
+
+```{r}
+diameter(net, directed=T)
+```
+
+También se puede obtener la secuencia de nodos que conforman el diámetro de la red.
+
+```{r}
+diam <- get_diameter(net, directed=T)
+diam
+```
+
+Podemos visualizar la red, coloreando los nodos y arcos del diámetro.
+
+```{r fig.width=8}
+vcol <- rep("gray40", vcount(net))
+
+vcol[diam] <- "gold" # Pintamos dorados los nodos del diámetro
+
+ecol <- rep("gray80", ecount(net))
+
+ecol[E(net, path=diam)] <- "tomato" # Pintamos rojos los arcos del diámetro
+
+# E(net, path=diam) busca los arcos a lo largo de un camino, en este caso: 'diam'
+
+plot(net, vertex.color=vcol, edge.color=ecol, vertex.label=NA, edge.arrow.size=0.5)
+```
+
+### Grados
+
+Cada nodo tiene un grado, el cual está determinado por la cantidad de conexiones que presenta en la red. El grado puede ser interno: la cantidad de aristas que _llegan_ hacia el nodo; externo: la cantidad de aristas que _salen_ desde el nodo; o total: la suma de los grados interno y externo. En R se utiliza el atributo ``mode`` para seleccionar el tipo de grado deseado, el que puede ser ``"in"``, ``"out"`` u ``"all"``.
+
+```{r}
+deg <- degree(net, mode='all')
+deg
+```
+
+Podemos graficar la red, destacando los nodos según su grado total.
+
+```{r fig.width=8}
+plot(net, vertex.size=deg*3, vertex.label=NA)
+```
+
+Muchas veces es interesante conocer el histograma de los grados de los nodos, pues esto nos permite entender la manera en que estos se conectan. Por ejemplo, en redes sociales se da el efecto de que existen pocos usuarios que tienen muchos seguidores (grado interno) y muchos usuarios que tienen pocos seguidores, formando un histograma con una cola larga hacia la derecha. En el ejemplo que tenemos, el histograma se vería así:
+
+```{r fig.width=6}
+hist(deg, breaks=1:vcount(net)-1, main="Histograma del grado de los nodos")
+```
+
+## Centralidad 
+
+## Distancias y Caminos
+
+
 ## Subgrupos y comunidades
 
 Como ya hemos visto en el dataset utilizado, el grafo presenta arcos dirigidos. Previamente a utilizar las funciones para subgrupos y comunidades, debemos transformar nuestro grafo a uno no dirigido. Para ello, la manera más sencilla es crear arcos indirectos entre cada par de nodos que están conectados utilizando la función ``as.undirected`` con el parámetro ``mode="collapse"``. Además como en los casos anteriores, haremos una agregación de los pesos en los arcos.
