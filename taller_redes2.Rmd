@@ -434,28 +434,114 @@ plot(cfg, net.sym, edge.arrow.size = 0.2, vertex.label = V(net.wl)$media, vertex
 ```
 
 # Taller Práctico
+
+Utilizaremos un dataset que contiene los proyectos de ley presentados por diputados durante el año 2006. Cada nodo representa una persona y los arcos el boletín (proyecto) presentado por ambos. Para ello, cargaremos los datasets ``netsponsor_2006_1mes.csv`` y ``vertex_2006_1mes.csv``.
+
 ```{r}
 edgesponsor <- read.csv("data/netsponsor_2006_1mes.csv", sep = ";")
 vertexsponsor <- read.csv("data/vertex_2006_1mes.csv", sep = ";")
 ```
 
+Luego transformamos ambos dataset a un grafo.
 ```{r}
 netsponsor <- graph_from_data_frame(d = edgesponsor, vertices = vertexsponsor, directed = F)
 ```
 
+E inspeccionamos los nodos y arcos.
 ```{r}
 V(netsponsor)
 E(netsponsor)
 ```
 
-
+Así como también sus atributos
 ```{r}
 edge_attr(netsponsor)
 vertex_attr(netsponsor)
 ```
 
-```{r}
-
+Primero, visualizaremos el grafo sin mayor procesamiento ya que solo quitaremos los labels de los nodos y ajustaremos el tamaño del vértice y arco.
+```{r fig.width= 10}
+lay <- layout_with_fr(netsponsor)
+plot(netsponsor, vertex.label = NA, vertex.size = 8, edge.width = 0.5, layout = lay)
 ```
 
+
+Dado que tenemos tres tipos de pactos, asignaremos colores a cada uno de estos para visualizarlos en el grafo.
+```{r}
+coal_colors <- length(V(netsponsor)$pact)
+coal_colors [V(netsponsor)$pact == "Alianza"] <- "royalblue4"
+coal_colors [V(netsponsor)$pact == "Concertacion/NM"] <- "darkred"
+coal_colors [V(netsponsor)$pact == "Otro"] <- "yellow2"
+```
+
+```{r fig.width= 10}
+
+plot(netsponsor, vertex.label = NA, vertex.size = 8, edge.width = 0.5, vertex.color = coal_colors, layout = lay)
+
+legend("bottomright", 
+       legend = c("Concertacion", "Alianza", "Indep"), 
+       col = c("darkred", "royalblue4", "yellow2" ),
+       pch = 20, 
+       bty = "n", 
+       pt.cex = 1.5, 
+       cex = 1, 
+       text.col = "black", 
+       horiz = F , 
+       inset = c(.8, 0))
+```
+
+Al igual que en el dataset anterior, estimaremos el clique de la red.
+
+```{r fig.width= 10}
+cl.ns <- largest_cliques(netsponsor)
+vcol <- rep("grey80", vcount(netsponsor))  
+vcol[unlist(largest_cliques(netsponsor))] <- "gold"  
+plot(as.undirected(netsponsor), vertex.label=NA, vertex.color=vcol, vertex.size = 8, edge.width = 0.5, layout = lay)
+```
+
+Adicionalmente, ya que no podemos colorear los pactos dado que lo estamos haciendo para el clique, agregaremos ``shapes`` a cada uno. 
+```{r}
+source("data/triangle_shape.R") #triangulos no estan como figuras asi que lo agregaremos nosotros
+coal_shapes <- length(V(netsponsor)$pact)
+coal_shapes [V(netsponsor)$pact == "Alianza"] <- "circle"
+coal_shapes [V(netsponsor)$pact == "Concertacion/NM"] <- "triangle"
+coal_shapes [V(netsponsor)$pact == "Otro"] <- "square"
+```
+
+```{r fig.width= 10}
+vcol <- rep("grey80", vcount(netsponsor))  
+vcol[unlist(largest_cliques(netsponsor))] <- "gold"  
+plot(netsponsor, vertex.label=NA, vertex.color=vcol, vertex.size = 8, edge.width = 0.5, layout = lay, vertex.shape = coal_shapes)
+
+legend("bottomright", 
+       legend = c("Alianza", "Concertacion", "Indep"),
+       pch = c(1,2,0),
+       bty = "n", 
+       pt.cex = 1.5, 
+       cex = 1, 
+       text.col = "black", 
+       horiz = F , 
+       inset = c(.8, 0))
+```
+
+
+También podemos obtener las comunidades que se generan a partir del principal utilizando el algoritmo de **Newman-Girvan**.
+```{r}
+ceb.ns <- cluster_edge_betweenness(netsponsor) 
+dendPlot(ceb.ns, mode="hclust")
+```
+
+```{r fig.width= 10}
+plot(ceb.ns, netsponsor, vertex.label=NA, vertex.color=vcol, vertex.size = 8, edge.width = 0.5, layout = lay, vertex.shape = coal_shapes) 
+
+legend("bottomright", 
+       legend = c("Alianza", "Concertacion", "Indep"),
+       pch = c(1,2,0),
+       bty = "n", 
+       pt.cex = 1.5, 
+       cex = 1, 
+       text.col = "black", 
+       horiz = F , 
+       inset = c(.8, 0))
+```
 
