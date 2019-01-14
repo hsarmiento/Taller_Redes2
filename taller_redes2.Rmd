@@ -667,3 +667,53 @@ legend("bottomright",
        inset = c(.8, 0))
 ```
 
+Para terminar, calcularemos algunas medidas analíticas de la red, como su distancia promedio y su diámetro:
+
+```{r}
+mean_distance(netsponsor)
+```
+
+```{r}
+diam <- get_diameter(netsponsor)
+diam
+```
+
+
+```{r fig.width=8}
+
+vcol <- rep("gray40", vcount(netsponsor))
+
+vcol[diam] <- "gold" # Pintamos dorados los nodos del diámetro
+
+ecol <- rep("gray80", ecount(netsponsor))
+
+ecol[E(netsponsor, path=diam)] <- "tomato" # Pintamos rojos los arcos del diámetro
+
+plot(netsponsor, vertex.color=vcol, edge.color=ecol, vertex.label=ifelse(V(netsponsor)$name %in% V(netsponsor)[diam]$name, V(netsponsor)$full_name, NA), edge.arrow.size=0.5)
+```
+
+Finalmente, obtendremos los nombres de quienes son más importantes para la red, calculando las medidas de centralidad
+
+```{r}
+deg <- degree(netsponsor, mode="total")
+amax <- which(deg==max(deg))
+V(netsponsor)[amax]$full_name
+max(deg)
+```
+
+```{r}
+# La cercanía no está definida en redes desconectadas, entonces obtenemos la componente más grande
+
+clo <- closeness(induced.subgraph(netsponsor, V(netsponsor)[components(netsponsor)$membership==1]))
+amax <- which(clo==max(clo))
+V(netsponsor)[amax]$full_name
+max(clo)
+```
+
+```{r}
+bet <- betweenness(netsponsor)
+amax <- which(bet==max(bet))
+V(netsponsor)[amax]$full_name
+max(bet)
+```
+
