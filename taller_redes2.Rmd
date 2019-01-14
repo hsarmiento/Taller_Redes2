@@ -51,16 +51,13 @@ plot(g3)
 
 También podemos crear grafos donde los nodos tienen un nombre (no necesariamente números). En este caso, no necesitamos el parámetro ``n`` para la cantidad de vértices.
 ```{r}
-g4 <- graph( c("John", "Jim", "Jim", "Jill", "Jill", "John")) # named vertices
+g4 <- graph( c("Juan", "Maria", "Maria", "Luisa", "Luisa", "Juan")) # named vertices
 plot(g4)
 ```
 
 Sin embargo, ya que no podemos usar el parámetro ``n``, no tendremos nodos "aislados". Para esto, utilizaremos el parámetro ``isolates`` el cual recibe un vector con nombres de nodos que no tendrán conexión alguna con otros elementos en el grafo.
 
 ```{r}
-#g5 <- graph( c("John", "Jim", "Jim", "Jack", "Jim", "Jack", "John", "John"), 
-             #isolates=c("Jesse", "Janis", "Jennifer", "Justin") )  
-
 g5 <- graph( c("Juan", "Maria", "Maria", "Lucas", "Lucas", "Maria", "Juan", "Juan"), 
              isolates=c("Luisa", "Teresa", "Javier", "Matias") )  
 plot(g5)
@@ -117,7 +114,7 @@ Por ejemplo, podríamos agregar para cada nodo, un nuevo atributo llamado ``gende
 V(g5)$gender <- c("male", "female", "male", "female", "female", "male", "male")
 ```
 
-Y también agregar un nuevo atributo a los arcos, por ejemplo ``likes``
+Y también agregar un nuevo atributo a los arcos, por ejemplo ``views``
 ```{r}
 #la asignación se realiza en el orden de las columnas que aparecen en E(g5)
 E(g5)$views <- c(2, 1, 3, 1)
@@ -138,12 +135,14 @@ Usando el atributo ``gender`` asignado previamente para los nodos, podríamos mos
 ```{r, fig.height=5}
 plot(g5,vertex.color=c( "pink", "skyblue")[1+(V(g5)$gender=="male")])
 ```
+
 Además, como es posible apreciar en el grafo anterior, el tamaño de las direcciones del arco es un poco grande y también el nombre de cada nodo no queda bien ajustado. Para solucionar esto, usaremos los parámetros ``vertex.label.dist``, ``edge.arrow.size`` y ``vertex.label.color`` para corregir la distancia y el color del nombre del nodo, y  el tamaño de la dirección del arco.
 
 ```{r}
 plot(g5, edge.arrow.size=.5, vertex.label.color="black", vertex.label.dist=3,
   vertex.color=c( "pink", "skyblue")[1+(V(g5)$gender=="male")])
 ```
+
 Tambien podemos separar el arco bidireccional en 2 unidireccionales y agregaremos el "peso" de cada uno de estos al grafo. Para esto, usaremos el parámetro ``edge.curved`` y ``edge.label``.
 ```{r}
 plot(g5, edge.arrow.size=.5, vertex.label.color="black", vertex.label.dist=3,
@@ -160,6 +159,7 @@ También es posible ocultar el peso de los arcos y que el ancho de estos represen
 
 plot(g5, edge.arrow.size=.5, vertex.label.color=c("pink", "skyblue")[1+(V(g5)$gender=="male")], vertex.label = V(g5)$names, vertex.shape = "none",  edge.curved = T, vertex.label.font = 2, edge.width = E(g5)$views*0.8)
 ```
+
 Para más información sobre las opciones estéticas, ejecutar ``help(igraph.plotting)``
 
 ## Cargar datos en igraph
@@ -190,7 +190,7 @@ E(net)
 ```
 
 Graficando el grafo, usando como etiqueta de cada nodo el nombre de cada medio de noticias a través del atributo ``media``.
-```{r fig.width=10}
+```{r fig.width=10, fig.height=8}
 plot(net, edge.curved = T, vertex.label=nodes$media, vertex.size = 7, vertex.label.dist = 2)
 ```
 
@@ -200,7 +200,7 @@ nets <- simplify(net, remove.multiple = T, remove.loops = T, edge.attr.comb=list
 ```
 
 Y luego graficamos
-```{r fig.width=10}
+```{r fig.width=10, fig.height=8}
 plot(nets, vertex.label=nodes$media, vertex.size = 7, vertex.label.dist = 2, edge.curved = F)
 ```
 
@@ -214,7 +214,7 @@ edge_attr(nets)
 
 Basado en lo anterior, vemos que tenemos 3 tipos de medios noticiosos y cada uno de estos tienen un valor de audiencia que nos dice la importancia que poseen. En relación a esto, adjuntaremos tal información en nuestro grafo.
 
-```{r fig.width=10}
+```{r fig.width=10, fig.height=8}
 coul <- c("red","blue","green")
 plot(nets, vertex.label.dist = 2, edge.curved = T, vertex.color = coul[V(nets)$media.type],
      vertex.label.color = "black", edge.arrow.size = 0.5, vertex.label = V(nets)$media, vertex.size = V(nets)$audience.size*0.3)
@@ -224,7 +224,7 @@ legend("bottomleft", legend=levels(as.factor(V(nets)$type.label)) , col = coul ,
 ```
 
 Adicionalmente, podríamos agregar los pesos que tiene cada arco a través del ancho de estos.
-```{r fig.width=10}
+```{r fig.width=10, fig.height=8}
 coul <- c("red","blue","green")
 plot(nets, vertex.label.dist = 2, edge.curved = T, vertex.color = coul[V(nets)$media.type],
      vertex.label.color = "black", edge.arrow.size = 0.9, vertex.label = V(nets)$media, vertex.size = V(nets)$audience.size*0.3, edge.width = E(nets)$weight*0.2)
@@ -250,7 +250,7 @@ Luego, graficamos ambos grafos pero como la distribución en el espacio de la red
 
 
 
-```{r fig.width=10}
+```{r fig.width=10, fig.height=8}
 
 coul <- c("red","blue","green")
 l <- layout_with_fr(net)
@@ -523,10 +523,11 @@ cl.largest <- largest_cliques(net.sym)  #entrega una lista de vertices del subgr
 
 Basado en lo anterior, primero vamos a colorear todos los nodos de una tonalidad específica. Luego le daremos un color diferente a los que están en el clique más grande y finalmente graficaremos.
 
-```{r fig.width=10}
+```{r fig.width=10, fig.height=8, warning = F}
+ly <- layout_with_fr(net.sym)
 vcol <- rep("grey80", vcount(net.sym))  #obtenemos todos los vertices de net.sym con vcount y los pintamos gris
 vcol[unlist(largest_cliques(net.sym))] <- "gold"  #desenlistamos los vertices del subgrafo y los pintamos dorado
-plot(as.undirected(net.sym), vertex.label=V(net.sym)$media, vertex.color=vcol, vertex.label.dist = 2)
+plot(as.undirected(net.sym), vertex.label=V(net.sym)$media, vertex.color=vcol, vertex.label.dist = 2, vertex.size = 8, layout = ly)
 ```
 
 ### Detección de comunidades
@@ -534,7 +535,7 @@ En la literatura existe una amplia cantidad de algoritmos para detectar comunida
 
 El primero que usaremos será el algoritmo de **Newman-Girvan**. Este algoritmo se basa en el concepto de arcos con alta centralidad, los cuales son eliminados secuencialmente para particionar la red en subcomunidades. Para ello, previamente visualizaremos mediante dendogramas las particiones generadas por el algoritmo.
 
-```{r}
+```{r warning = F}
 net.wl = simplify(net, remove.loops = T)
 ceb <- cluster_edge_betweenness(net.wl) 
 
@@ -543,16 +544,16 @@ dendPlot(ceb, mode="hclust")
 
 
 Luego graficamos la comunidad en base al grafo obtenido con ciertas opciones como agregar el nombre de cada medio noticioso, tamaño de las flechas, etc.
-```{r fig.width= 9}
-plot(ceb, net.wl, edge.arrow.size = 0.2, vertex.label = V(net.wl)$media, vertex.label.color = "black", vertex.label.dist = 2) 
+```{r fig.width=9, fig.height=8}
+plot(ceb, net.wl, edge.arrow.size = 0.2, vertex.label = V(net.wl)$media, vertex.label.color = "black", vertex.label.dist = 2, vertex.size = 8, layout = ly) 
 
 ```
 
 Un segundo algoritmo que también podemos utilizar para encontrar comunidades es el basado en modularidad. Este método busca conexiones densas dentro de cada comunidad tratando de maximizar a su vez la separación distintos sub grafos.
-```{r fig.width= 10}
+```{r fig.width=10, fig.height=8, warning= F}
 cfg <- cluster_fast_greedy(net.sym)
 
-plot(cfg, net.sym, edge.arrow.size = 0.2, vertex.label = V(net.wl)$media, vertex.label.color = "black", vertex.label.dist = 2)
+plot(cfg, net.sym, edge.arrow.size = 0.2, vertex.label = V(net.wl)$media, vertex.label.color = "black", vertex.label.dist = 2, vertex.size = 8, layout = ly)
 ```
 
 # Taller Práctico
@@ -582,7 +583,7 @@ vertex_attr(netsponsor)
 ```
 
 Primero, visualizaremos el grafo sin mayor procesamiento ya que solo quitaremos los labels de los nodos y ajustaremos el tamaño del vértice y arco.
-```{r fig.width= 10}
+```{r fig.width=10, fig.height=8}
 lay <- layout_with_fr(netsponsor)
 plot(netsponsor, vertex.label = NA, vertex.size = 8, edge.width = 0.5, layout = lay)
 ```
@@ -596,7 +597,7 @@ coal_colors [V(netsponsor)$pact == "Concertacion/NM"] <- "darkred"
 coal_colors [V(netsponsor)$pact == "Otro"] <- "yellow2"
 ```
 
-```{r fig.width= 10}
+```{r fig.width=10, fig.height=8}
 
 plot(netsponsor, vertex.label = NA, vertex.size = 8, edge.width = 0.5, vertex.color = coal_colors, layout = lay)
 
@@ -614,7 +615,7 @@ legend("bottomright",
 
 Al igual que en el dataset anterior, estimaremos el clique de la red.
 
-```{r fig.width= 10}
+```{r fig.width=10, fig.height=8}
 cl.ns <- largest_cliques(netsponsor)
 vcol <- rep("grey80", vcount(netsponsor))  
 vcol[unlist(largest_cliques(netsponsor))] <- "gold"  
@@ -630,7 +631,7 @@ coal_shapes [V(netsponsor)$pact == "Concertacion/NM"] <- "triangle"
 coal_shapes [V(netsponsor)$pact == "Otro"] <- "square"
 ```
 
-```{r fig.width= 10}
+```{r fig.width=10, fig.height=8}
 vcol <- rep("grey80", vcount(netsponsor))  
 vcol[unlist(largest_cliques(netsponsor))] <- "gold"  
 plot(netsponsor, vertex.label=NA, vertex.color=vcol, vertex.size = 8, edge.width = 0.5, layout = lay, vertex.shape = coal_shapes)
@@ -653,7 +654,7 @@ ceb.ns <- cluster_edge_betweenness(netsponsor)
 dendPlot(ceb.ns, mode="hclust")
 ```
 
-```{r fig.width= 10}
+```{r fig.width=10, fig.height=8}
 plot(ceb.ns, netsponsor, vertex.label=NA, vertex.color=vcol, vertex.size = 8, edge.width = 0.5, layout = lay, vertex.shape = coal_shapes) 
 
 legend("bottomright", 
