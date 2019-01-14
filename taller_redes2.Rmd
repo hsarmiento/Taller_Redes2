@@ -343,6 +343,7 @@ diam
 Podemos visualizar la red, coloreando los nodos y arcos del diámetro.
 
 ```{r fig.width=8}
+V(net)$size <- V(net)$audience.size*0.7
 vcol <- rep("gray40", vcount(net))
 
 vcol[diam] <- "gold" # Pintamos dorados los nodos del diámetro
@@ -368,7 +369,7 @@ deg
 Podemos graficar la red, destacando los nodos según su grado total.
 
 ```{r fig.width=8}
-plot(net, vertex.size=deg*3, vertex.label=NA)
+plot(net, vertex.size=deg*3, vertex.label=NA, edge.arrow.size=0.5)
 ```
 
 Muchas veces es interesante conocer el histograma de los grados de los nodos, pues esto nos permite entender la manera en que estos se conectan. Por ejemplo, en redes sociales se da el efecto de que existen pocos usuarios que tienen muchos seguidores (grado interno) y muchos usuarios que tienen pocos seguidores, formando un histograma con una cola larga hacia la derecha. En el ejemplo que tenemos, el histograma se vería así:
@@ -379,8 +380,129 @@ hist(deg, breaks=1:vcount(net)-1, main="Histograma del grado de los nodos")
 
 ## Centralidad 
 
+La centralidad de un nodo es una métrica que permite identificar la _importancia_ de un nodo en la red. Claramente, la importancia depende del análisis que el usuario haga de la red, por lo que hay varias medidas de centralidad. Una medida típica de centralidad es el grado (interno, externo o total) de un nodo, bajo el supuesto de que un nodo con más conexiones es más relevante en la red.
+
+Otras métricas incluyen la __cercanía__, la cual está basada en la distancia de un nodo a todos los demás de la red. Se calcula como el inverso de la distancia geodésica promedio entre el nodo y todos los demás.
+
+```{r}
+closeness(net, mode="all", weights=NA) 
+```
+
+El __betweenness__ es una medida de centralidad que intenta caracterizar el efecto que tendría en la red la remoción del nodo o el arco. El betweenness se define como la proporción de distancias geodésicas que pasan por cada nodo o arco.
+
+```{r}
+betweenness(net, directed=F, weights=NA)
+```
+
+```{r}
+edge_betweenness(net, directed=F, weights = NA)
+```
+
 ## Distancias y Caminos
 
+En R hay varias funciones que nos permiten calcular distancias y caminos entre nodos. Las funciones ```mean_distance``` y ```distance``` calculan la distancia geodésica promedio y la distancia entre cada par de nodos respectivamente. En cada función se puede especificar el parámetro ```directed``` para indicar si la red es dirigida o no.
+
+```{r}
+mean_distance(net, directed = T)
+```
+
+```{r eval=FALSE}
+distances(net) # incluye los pesos de las aristas
+
+distances(net, weights=NA) # ignora los pesos
+```
+
+Es posible también especificar un subconjunto de nodos en los que estemos interesados y una direccionalidad. En el siguiente ejemplo calcularemos la distancia de cada uno de los medios al New York Times:
+
+```{r fig.width=8}
+dist.from.NYT <- distances(net, v=V(net)[media=="NY Times"], to=V(net), weights=NA)
+
+# Asignamos los colores según la distancia:
+
+oranges <- colorRampPalette(c("dark red", "gold"))
+
+col <- oranges(max(dist.from.NYT)+1)
+
+col <- col[dist.from.NYT+1]
+
+plot(net, vertex.color=col, vertex.label=dist.from.NYT, edge.arrow.size=.6, 
+
+     vertex.label.color="white")
+```
+
+También se puede calcular el camino más corto entre un par específico de nodos. En el ejemplo calculamos el camino más corto entre el New York Times y CNN:
+
+```{r}
+news.path <- shortest_paths(net, 
+
+                            from = V(net)[media=="CNN"], 
+
+                             to  = V(net)[media=="New York Post"],
+
+                             output = "both") # obtener nodos y arcos
+
+
+
+# Generar los colores para los arcos, los del camino serán naranjos:
+
+ecol <- rep("gray80", ecount(net))
+
+ecol[unlist(news.path$epath)] <- "orange"
+
+# Seleccionamos grosores distintos para los arcos del camino:
+
+ew <- rep(2, ecount(net))
+
+ew[unlist(news.path$epath)] <- 4
+
+# Los nodos del camino serán dorados:
+
+vcol <- rep("gray40", vcount(net))
+
+vcol[unlist(news.path$vpath)] <- "gold"
+
+
+# Realizamos el gráfico
+plot(net, vertex.color=vcol, edge.color=ecol, 
+
+     edge.width=ew, edge.arrow.mode=0, vertex.label=NA)
+```
+
+Finalmente, se pueden encontrar las aristas y nodos adyacentes a algún nodo:
+
+```{r fig.width=8}
+# Se obtienen los arcos adyacentes a los indicados en 2do parametro
+
+inc.edges <- incident(net,  V(net)[media=="Wall Street Journal"], mode="all")
+
+
+# Los arcos adyacentes se colorean distinto.
+
+ecol <- rep("gray80", ecount(net))
+
+ecol[inc.edges] <- "orange"
+
+vcol <- rep("grey40", vcount(net))
+
+vcol[V(net)$media=="Wall Street Journal"] <- "gold"
+
+plot(net, vertex.color=vcol, edge.color=ecol, vertex.label=NA, edge.arrow.size=.6)
+```
+
+```{r fig.width=8}
+# Se encuentran los nodos adyacentes, con la dirección indicada en mode
+
+neigh.nodes <- neighbors(net, V(net)[media=="Wall Street Journal"], mode="out")
+
+
+# Se colorean los vecinos distinto:
+
+vcol[neigh.nodes] <- "#ff9d00"
+
+plot(net, vertex.color=vcol, vertex.label=NA, edge.arrow.size=.6)
+```
+
+Si en vez de especificar un solo nodo se quiere especificar un conjunto de ellos, se deben usar las funciones ```incident_edges``` y ```adjacent_vertices```.
 
 ## Subgrupos y comunidades
 
